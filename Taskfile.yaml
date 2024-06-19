@@ -1,0 +1,53 @@
+---
+version: "3"
+vars:
+  PACKAGE_VERSION:
+    sh: |
+      find . -name 'zarf-package-crossplane-*' | \
+      awk -F'zarf-package-crossplane-' '{print $2}' | \
+      awk -F'.tar.zst' '{print $1}' | \
+      head -n 1
+  BUNDLE_VERSION:
+    sh: |
+      find . -name 'uds-bundle-k3d-development-*' | \
+      awk -F'uds-bundle-k3d-development-' '{print $2}' | \
+      awk -F'.tar.zst' '{print $1}' | \
+      head -n 1
+  ARCH:
+    sh: |
+      uname -m
+tasks:
+  default:
+    silent: true
+    cmd: task -l
+  create.cluster:
+    desc: Create a local K3d Development Cluster
+    cmds:
+      - zarf package deploy oci://ghcr.io/beholdenkey/packages/k3d:1.2.0 --no-progress --confirm
+  init.zarf:
+    desc: Initialize the Zarf Package
+    cmds:
+      - zarf init --components=git-server --confirm
+  create:
+    summary: Create the kserve Package
+    desc: Create the kserve Package
+    dir: packages/kserve
+    cmds:
+      - cmd: zarf package create . -a {{.ARCH}} --no-progress --confirm -l debug
+    sources:
+      - /*.tar.zst
+    generates:
+      - zarf-package-kserve-*.tar.zst
+    method: checksum
+  deploy:
+    summary: Deploys the kserve Zarf Package
+    desc: Deploys the kserve Zarf Package
+    dir: packages/kserve
+    cmds:
+      - cmd: zarf package deploy zarf-package-kserve-* --no-progress --confirm -l debug
+  remove:
+    summary: Remove the kserve Zarf Package
+    desc: Remove the kserve Zarf Package
+    dir: packages/kserve
+    cmds:
+      - cmd: zarf package remove kserve --confirm
