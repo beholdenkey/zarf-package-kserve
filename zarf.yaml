@@ -3,7 +3,7 @@ kind: ZarfPackageConfig
 metadata:
   name: kserve
   description: Deploys Kserve Highly scalable and standards based Model Inference Platform on Kubernetes
-  version: 0.0.1
+  version: 1.0.0
   authors: Justin Bailey
   documentation: https://kserve.github.io/website/0.13/admin/serverless/serverless/
   source: https://github.com/kserve/kserve
