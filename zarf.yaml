@@ -2,22 +2,24 @@
 kind: ZarfPackageConfig
 metadata:
   name: kserve
-  description: Deploys Kserve Cluster Serving Runtimes
+  description: Deploys Kserve Highly scalable and standards based Model Inference Platform on Kubernetes
   version: 0.0.1
   authors: Justin Bailey
-  documentation: https://kserve.github.io/website/0.11/admin/serverless/serverless/#5-install-kserve-built-in-clusterservingruntimes
+  documentation: https://kserve.github.io/website/0.13/admin/serverless/serverless/
   source: https://github.com/kserve/kserve
 
 components:
   - name: kserve
     required: true
-    description: "Install Kserve"
+    description: |
+      Install Kserve and use Kourier as the Networking Layer.
+      This package assumes that you will be using Kourier in the future I will have additional options.
     manifests:
       - name: kserve
         files:
           - manifests/kserve.yaml
     images:
-      - gcr.io/kubebuilder/kube-rbac-proxy:v0.13.1
+      - gcr.io/kubebuilder/kube-rbac-proxy:v0.14.1
       - kserve/kserve-controller:v0.13.0
       - kserve/agent:v0.13.0
       - kserve/router:v0.13.0
@@ -27,7 +29,11 @@ components:
       onDeploy:
         after:
           - cmd: |
-              ./zarf tools kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"deploy": "{\"defaultDeploymentMode\": \"RawDeployment\"}", "ingress": "{\"ingressClassName\": \"your-ingress-class\"}"}}'
+              ./zarf tools kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"deploy": "{\"defaultDeploymentMode\": \"RawDeployment\"}"}}'
+          - cmd: |
+              ./zarf tools kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"ingress": "{\"disableIstioVirtualHost\": true}"}}'
+          - cmd: |
+              ./zarf tools kubectl patch configmap/inferenceservice-config -n kserve --type=strategic -p '{"data": {"ingress": "{\"ingressClassName\": \"kourier\"}"}}'
           - cmd: |
               ./zarf tools kubectl rollout restart deployment kserve-controller-manager -n kserve
   - name: kserve-cluster-resources
