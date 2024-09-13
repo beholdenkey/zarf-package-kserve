@@ -9,7 +9,7 @@ spec:
   containers:
   - args:
     - --model_name={{.Name}}
-    image: kserve/huggingfaceserver:v0.13.0
+    image: kserve/huggingfaceserver:v0.13.1
     name: kserve-container
     resources:
       limits:
